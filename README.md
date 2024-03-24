@@ -57,6 +57,7 @@ services:
     depends_on:
       - wavelog-mariadb
     environment:
+      UPLOAD_LIMIT: 128M    
       PMA_HOST: wavelog-mariadb
       PMA_PORT: 3306
       PMA_USER: wavelog
