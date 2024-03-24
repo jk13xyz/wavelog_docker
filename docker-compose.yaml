@@ -14,8 +14,7 @@ services:
 
   wavelog-main:
     container_name: wavelog-main
-    build:
-      dockerfile: ./Dockerfile
+    image: jk13xyz/wavelog:latest
     depends_on:
       - wavelog-db
     volumes:
@@ -23,7 +22,7 @@ services:
       - wavelog-uploads:/var/www/html/uploads
       - wavelog-userdata:/var/www/html/userdata
     ports:
-      - "8086:80"
+      - "7383:80"
     restart: unless-stopped
 
 volumes:

@@ -1,35 +1,64 @@
 FROM php:8.3-apache
-RUN touch /usr/local/etc/php/conf.d/uploads.ini \
-&& echo "file_uploads = On" >> /usr/local/etc/php/conf.d/uploads.ini \
-&& echo "memory_limit = 64M" >> /usr/local/etc/php/conf.d/uploads.ini \
-&& echo "upload_max_filesize = 64M" >> /usr/local/etc/php/conf.d/uploads.ini \
-&& echo "post_max_size = 64M" >> /usr/local/etc/php/conf.d/uploads.ini \
-&& echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini
-RUN apt-get update \
-&& apt-get install -y git curl libxml2-dev libonig-dev libzip-dev git
-RUN docker-php-ext-install mysqli mbstring xml zip
+ARG VERSION=1.3.1
+RUN touch /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "file_uploads = On" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "memory_limit = 64M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "upload_max_filesize = 64M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "post_max_size = 64M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    cron \
+    libxml2-dev \
+    libonig-dev \
+    libzip-dev \
+    wget
+RUN docker-php-ext-install \
+    mysqli \
+    mbstring \
+    xml \
+    zip
 RUN a2enmod rewrite
-
+RUN cd /var/www/html && rm -rf *
 WORKDIR /var/www/html
-RUN git config --system --add safe.directory /var/www/html
-RUN git clone https://github.com/wavelog/wavelog.git .
-RUN chown -R www-data:www-data /var/www/html
-RUN git checkout dev
-RUN git pull
+RUN wget https://github.com/wavelog/wavelog/archive/refs/tags/${VERSION}.tar.gz && \
+    tar -xf ${VERSION}.tar.gz && \
+    mv /var/www/html/wavelog-${VERSION}/* /var/www/html/ && \
+    rm -rf wavelog-${VERSION} && \
+    rm ${VERSION}.tar.gz
 RUN mkdir ./userdata
-RUN mv ./.htaccess.sample ./.htaccess
-RUN echo "Setting www-data as owner of the html folder" \
-&& chown -R www-data:www-data /var/www/html
+COPY misc/.htaccess /var/www/html/
+RUN sed -i "s/\$config\['index_page'\] = 'index.php';/\$config\['index_page'\] = '';/g" ./install/config/config.php
+RUN echo "Setting www-data as owner of the html folder" && \
+    chown -R www-data:www-data /var/www/html
 RUN echo "Setting permissions to the install folder" \
-&& cd /var/www/html \
-&& chmod -R g+rw ./application/config/ \
-&& chmod -R g+rw ./application/logs/ \
-&& chmod -R g+rw ./assets/qslcard/ \
-&& chmod -R g+rw ./backup/ \
-&& chmod -R g+rw ./updates/ \
-&& chmod -R g+rw ./uploads/ \
-&& chmod -R g+rw ./userdata/ \
-&& chmod -R g+rw ./images/eqsl_card_images/ \
-&& chmod -R g+rw ./assets/ \
-&& chmod -R 777 /var/www/html/install
-RUN git config --system --add safe.directory /var/www/html
+    cd /var/www/html && \
+    chmod -R g+rw ./application/config/ && \
+    chmod -R g+rw ./application/logs/ && \
+    chmod -R g+rw ./assets/qslcard/ && \
+    chmod -R g+rw ./backup/ && \
+    chmod -R g+rw ./updates/ && \
+    chmod -R g+rw ./uploads/ && \
+    chmod -R g+rw ./userdata/ && \
+    chmod -R g+rw ./images/eqsl_card_images/ && \
+    chmod -R g+rw ./assets/ && \
+    chmod -R 777 /var/www/html/install
+RUN touch /etc/crontab && \
+    echo "0 */12 * * * curl --silent http://localhost/clublog/upload &>/dev/null" >> /etc/crontab && \
+    echo "10 */12 * * * curl --silent http://localhost/eqsl/sync &>/dev/null" >> /etc/crontab && \    
+    echo "20 */12 * * * curl --silent http://localhost/qrz/upload &>/dev/null" >> /etc/crontab && \
+    echo "30 */12 * * * curl --silent http://localhost/qrz/download &>/dev/null" >> /etc/crontab && \        
+    echo "40 */12 * * * curl --silent http://localhost/hrdlog/upload &>/dev/null" >> /etc/crontab && \
+    echo "0 1 * * * curl --silent http://localhost/lotw/lotw_upload &>/dev/null" >> /etc/crontab && \     
+    echo "10 1 * * * curl --silent http://localhost/update/lotw_users &>/dev/null" >> /etc/crontab && \
+    echo "20 1 * * 1 curl --silent http://localhost/update/update_clublog_scp &>/dev/null" >> /etc/crontab && \
+    echo "0 2 1 */1 * curl --silent http://localhost/update/update_sota &>/dev/null" >> /etc/crontab && \
+    echo "10 2 1 */1 * curl --silent http://localhost/update/update_wwff &>/dev/null" >> /etc/crontab && \
+    echo "20 2 1 */1 * curl --silent http://localhost/update/update_pota &>/dev/null" >> /etc/crontab && \
+    echo "0 3 1 */1 *  curl --silent http://localhost/update/update_dok &>/dev/null" >> /etc/crontab    
+RUN chmod 0644 /etc/crontab
+RUN crontab /etc/crontab
+RUN mkdir -p /var/log/cron
+RUN sed -i 's/^exec /service cron start\n\nexec /' /usr/local/bin/apache2-foreground 
+HEALTHCHECK CMD wget -q --no-cache --spider localhost/user/login
