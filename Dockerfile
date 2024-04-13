@@ -1,5 +1,5 @@
 FROM php:8.3-apache
-ARG VERSION=1.3.1
+ARG VERSION=1.4
 RUN touch /usr/local/etc/php/conf.d/uploads.ini && \
     echo "file_uploads = On" >> /usr/local/etc/php/conf.d/uploads.ini && \
     echo "memory_limit = 64M" >> /usr/local/etc/php/conf.d/uploads.ini && \
