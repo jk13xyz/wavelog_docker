@@ -13,7 +13,7 @@ This image is for personal use only and comes without support. If you'd like sup
 
 ## Current version
 
-1.5.1
+1.5.2
 
 **Please note**: The internal "Update" function has not been tested".
 
