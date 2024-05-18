@@ -22,11 +22,8 @@ RUN docker-php-ext-install \
 RUN a2enmod rewrite
 RUN cd /var/www/html && rm -rf *
 WORKDIR /var/www/html
-RUN wget https://github.com/wavelog/wavelog/archive/refs/tags/${VERSION}.tar.gz && \
-    tar -xf ${VERSION}.tar.gz && \
-    mv /var/www/html/wavelog-${VERSION}/* /var/www/html/ && \
-    rm -rf wavelog-${VERSION} && \
-    rm ${VERSION}.tar.gz
+WORKDIR /var/www/html
+RUN curl -L https://api.github.com/repos/wavelog/wavelog/tarball/master | tar -xz --strip=1
 RUN mkdir ./userdata
 COPY misc/.htaccess /var/www/html/
 RUN sed -i "s/\$config\['index_page'\] = 'index.php';/\$config\['index_page'\] = '';/g" ./install/config/config.php
