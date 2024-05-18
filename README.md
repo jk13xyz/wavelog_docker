@@ -11,9 +11,9 @@ This image is for personal use only and comes without support. If you'd like sup
 - No "/index.php/" in the URL,
 - Comes with (most) cronjobs out-of-the-box.
 
-## Current version
+## Current build version
 
-1.5.2
+18 May 2024
 
 **Please note**: The internal "Update" function has not been tested".
 
