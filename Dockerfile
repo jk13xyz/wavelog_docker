@@ -23,7 +23,6 @@ RUN cd /var/www/html && rm -rf *
 WORKDIR /var/www/html
 WORKDIR /var/www/html
 RUN curl -L https://api.github.com/repos/wavelog/wavelog/tarball/master | tar -xz --strip=1
-RUN mkdir ./userdata
 COPY misc/.htaccess /var/www/html/
 RUN sed -i "s/\$config\['index_page'\] = 'index.php';/\$config\['index_page'\] = '';/g" ./install/config/config.php
 RUN echo "Setting www-data as owner of the html folder" && \
