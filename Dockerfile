@@ -1,8 +1,7 @@
 FROM php:8.3-apache
-ARG VERSION=1.5.2
 RUN touch /usr/local/etc/php/conf.d/uploads.ini && \
     echo "file_uploads = On" >> /usr/local/etc/php/conf.d/uploads.ini && \
-    echo "memory_limit = 64M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/uploads.ini && \
     echo "upload_max_filesize = 64M" >> /usr/local/etc/php/conf.d/uploads.ini && \
     echo "post_max_size = 64M" >> /usr/local/etc/php/conf.d/uploads.ini && \
     echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini
@@ -24,7 +23,6 @@ RUN cd /var/www/html && rm -rf *
 WORKDIR /var/www/html
 WORKDIR /var/www/html
 RUN curl -L https://api.github.com/repos/wavelog/wavelog/tarball/master | tar -xz --strip=1
-RUN mkdir ./userdata
 COPY misc/.htaccess /var/www/html/
 RUN sed -i "s/\$config\['index_page'\] = 'index.php';/\$config\['index_page'\] = '';/g" ./install/config/config.php
 RUN echo "Setting www-data as owner of the html folder" && \
