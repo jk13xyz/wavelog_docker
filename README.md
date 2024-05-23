@@ -13,7 +13,7 @@ This image is for personal use only and comes without support. If you'd like sup
 
 ## Current build version
 
-18 May 2024
+23 May 2024 (v1.6)
 
 **Please note**: The internal "Update" function has not been tested".
 
